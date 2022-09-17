@@ -1,4 +1,4 @@
---/ author: Anton 'at@nda' Petrov
+--/ eventy v0.1 by Anton 'at@nda' Petrov
 --/ purpose: just for fan
 
 
@@ -55,7 +55,6 @@ local function xRegistrator(how, name, func) --/ how: true-add, false-remove, ni
 end
 
 class 'event'
-
 function event:__init(name) 
 	if name and name ~= "" then
 		if not tblEvents[name] then 
@@ -73,7 +72,7 @@ function event:trigger(tbl_props)
 			self[k] = v
 		end
 	elseif tbl_props ~= nil then
-		log("event:trigger<%s>: props=[%s] not a table!", "Warning!", type(evt_props))
+		log("event:trigger<%s>: tbl_props=[%s] not a table!", "Warning!", type(tbl_props))
 	end
 	
 	local tblSubs = tblEvents[self._name]
@@ -119,6 +118,11 @@ function event:remove()
 	return self --/>
 end
 
+function event:once()
+	self._once = true
+	return self
+end
+
 function event:start()
 	self._stop = false
 	return self
@@ -132,25 +136,38 @@ end
 
 --/ testing
 
-function test(e)
-	print(e.msg)
+do
+	function test(e)
+		print(e.msg)
+	end
+
+	event("test"):register(test)
+	for i=0, 2 do
+		event("test"):trigger({ msg = "Hello world! x"..i })
+	end
+
+	event("test"):stop()
+	for i=0, 2 do
+		event("test"):trigger({ msg = "it's 'Hello world!' will never be printed x"..i })
+	end
+
+	function test1(e)
+		print("Test1 "..e.msg)
+	end
+
+	event("test"):register(test1):start()
+	assert(event("test"):registered(test1) ~= nil)
+
+	event("test"):trigger({ msg = "Hello world!" })
 end
 
-event("test"):register(test)
-for i=0, 2 do
-	event("test"):trigger({ msg = "Hello world! x"..i })
+
+do
+	event("once-triggerred"):register(function(e)
+		log("This msg has been printed only %s:)", e.once)
+	end):once():
+		trigger({ once = "once" }):
+		trigger({ once = "twice" })
 end
 
-event("test"):stop()
-for i=0, 2 do
-	event("test"):trigger({ msg = "it's 'Hello world!' will never be printed x"..i })
-end
 
-function test1(e)
-	print("Test1 "..e.msg)
-end
-
-event("test"):register(test1):start()
-assert(event("test"):registered(test1) ~= nil)
-
-event("test"):trigger({ msg = "Hello world!" })
