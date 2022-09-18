@@ -1,21 +1,7 @@
---/ eventy v0.1 by Anton 'at@nda' Petrov
+--/ eventy v0.2 by Anton 'at@nda' Petrov
 --/ purpose: just for fan
 
-
---/ fancy oop inplementation
---/ really not better 
-local function class (name)
-	local cls = {}
-	setmetatable(cls, {
-		__call = function(self, ...) 
-			return self:__init(...)
-		end
-	})
-	_G[name] = cls
-end
-
 local log = function(fmt,...) print(string.format(tostring(fmt), ...)) end
-
 
 --/ events implementation
 
@@ -54,7 +40,15 @@ local function xRegistrator(how, name, func) --/ how: true-add, false-remove, ni
 	return false
 end
 
-class 'event'
+--/ fancy oop implementation
+local event = {}
+setmetatable(event, {
+	__call = function (self, ...) 
+		return self:__init(...) --/>
+	end
+})
+
+--/ constructor
 function event:__init(name) 
 	if name and name ~= "" then
 		if not tblEvents[name] then 
@@ -105,6 +99,7 @@ end
 function event:register(func)
 	 if xRegistrator(true, self._name, func) ~= true then
 		log("event:register<%s>: func=[%s] not registered!", "Error!", func)
+		return nil
 	 end
 	 return self --/>
 end
@@ -120,54 +115,17 @@ end
 
 function event:once()
 	self._once = true
-	return self
+	return self --/>
 end
 
 function event:start()
 	self._stop = false
-	return self
+	return self --/>
 end
 
 function event:stop()
 	self._stop = true
-	return self
+	return self --/>
 end
 
-
---/ testing
-
-do
-	function test(e)
-		print(e.msg)
-	end
-
-	event("test"):register(test)
-	for i=0, 2 do
-		event("test"):trigger({ msg = "Hello world! x"..i })
-	end
-
-	event("test"):stop()
-	for i=0, 2 do
-		event("test"):trigger({ msg = "it's 'Hello world!' will never be printed x"..i })
-	end
-
-	function test1(e)
-		print("Test1 "..e.msg)
-	end
-
-	event("test"):register(test1):start()
-	assert(event("test"):registered(test1) ~= nil)
-
-	event("test"):trigger({ msg = "Hello world!" })
-end
-
-
-do
-	event("once-triggerred"):register(function(e)
-		log("This msg has been printed only %s:)", e.once)
-	end):once():
-		trigger({ once = "once" }):
-		trigger({ once = "twice" })
-end
-
-
+return event --/>
