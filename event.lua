@@ -1,4 +1,4 @@
---/ eventy v0.2 by Anton 'at@nda' Petrov
+--/ eventy v0.3 by Anton 'at@nda' Petrov
 --/ purpose: just for fan
 
 local log = function(fmt,...) print(string.format(tostring(fmt), ...)) end
@@ -29,7 +29,7 @@ local function xRegistrator(how, name, func) --/ how: true-add, false-remove, ni
 			end
 			return true --/>
 		else 
-			--/ mode of check of having signed event
+			--/ mode of check of having signed EventManager
 			for _,v in ipairs(tblSubs) do
 				if rawequal(func, v) then
 					return true --/> callback registered
@@ -41,15 +41,15 @@ local function xRegistrator(how, name, func) --/ how: true-add, false-remove, ni
 end
 
 --/ fancy oop implementation
-local event = {}
-setmetatable(event, {
+local EventManager = {}
+setmetatable(EventManager, {
 	__call = function (self, ...) 
 		return self:__init(...) --/>
 	end
 })
 
 --/ constructor
-function event:__init(name) 
+function EventManager:__init(name) 
 	if name and name ~= "" then
 		if not tblEvents[name] then 
 			tblEvents[name] = {}
@@ -59,20 +59,20 @@ function event:__init(name)
 	return self --/>
 end
 
-function event:trigger(tbl_props) 
+function EventManager:trigger(tbl_props) 
 	if tbl_props and type(tbl_props) == 'table' then
 		for k,v in pairs(tbl_props) do
 			--/ accumulate props inside class
 			self[k] = v
 		end
 	elseif tbl_props ~= nil then
-		log("event:trigger<%s>: tbl_props=[%s] not a table!", "Warning!", type(tbl_props))
+		log("EventManager:trigger<%s>: tbl_props=[%s] not a table!", "Warning!", type(tbl_props))
 	end
 	
 	local tblSubs = tblEvents[self._name]
 	local idx, func = next(tblSubs or {}) 
 	if idx then
-		--/ cycle of processing event
+		--/ cycle of processing EventManager
 		while idx and self._stop ~= true do 
 			--/ execution itself
 			func(self) 
@@ -96,36 +96,36 @@ function event:trigger(tbl_props)
 	return self --/>
 end
 
-function event:register(func)
+function EventManager:register(func)
 	 if xRegistrator(true, self._name, func) ~= true then
-		log("event:register<%s>: func=[%s] not registered!", "Error!", func)
+		log("EventManager:register<%s>: func=[%s] not registered!", "Error!", func)
 		return nil
 	 end
 	 return self --/>
 end
 
-function event:registered(func)
+function EventManager:registered(func)
 	return xRegistrator(nil, self._name, func) and self or nil --/>
 end
 
-function event:remove() 
+function EventManager:remove() 
 	self._remove = true
 	return self --/>
 end
 
-function event:once()
+function EventManager:once()
 	self._once = true
 	return self --/>
 end
 
-function event:start()
+function EventManager:start()
 	self._stop = false
 	return self --/>
 end
 
-function event:stop()
+function EventManager:stop()
 	self._stop = true
 	return self --/>
 end
 
-return event --/>
+return EventManager --/>
