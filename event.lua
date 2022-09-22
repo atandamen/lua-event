@@ -118,6 +118,12 @@ function EventManager:once()
 	return self --/>
 end
 
+function EventManager:clear(name) 
+	if name and tblEvents[name] then 
+		tblEvents[name] = nil
+	end
+end
+
 function EventManager:start()
 	self._stop = false
 	return self --/>
